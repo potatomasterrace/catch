@@ -1,7 +1,7 @@
 # Catch
  Catch is a simple way for inlining Golang recover
-
- # Golang using Catch
+### Benchmarks show no difference between the two methods. The performance impact may be understated due to compiler optimization.
+# Golang using Catch
 ``` golang
 import (
 	"github.com/potatomasterrace/catch"
