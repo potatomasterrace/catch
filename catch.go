@@ -1,5 +1,9 @@
 package catch
 
+import (
+	"fmt"
+)
+
 // funcCall represents a function
 // call.
 type funcCall struct {
@@ -28,4 +32,15 @@ func Panic(panicProne func()) (bool, interface{}) {
 	}()
 	ret := <-errChan
 	return ret.finished, ret.err
+}
+
+func CatchError(panicProne func()) error {
+	finished, err := Panic(panicProne)
+	if err != nil {
+		return fmt.Errorf("%s", err)
+	}
+	if !finished {
+		return fmt.Errorf("function called panic with a nil error")
+	}
+	return nil
 }

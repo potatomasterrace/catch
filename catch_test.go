@@ -34,8 +34,6 @@ func BenchmarkCatch(b *testing.B) {
 			panicProneFunc()
 		})
 		b.Run("catch.panic way", func(b *testing.B) {
-			defer func() {
-			}()
 			Panic(panicProneFunc)
 		})
 	})
