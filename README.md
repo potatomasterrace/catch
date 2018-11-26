@@ -56,8 +56,8 @@ returns the same values as the previous example
 |    callback      |            err    value         | panicked value  |
 |:----------------:|:-------------------------------:|:---------------:|
 |   panicWithObj   |                42               |      true       |
-|   panicWithNil   |               nil               |      false      |
-|      noPanic     |               nil               |      true       |
+|   panicWithNil   |               nil               |      true       |
+|      noPanic     |               nil               |      false      |
 ## Sanitize function
 ```Go
     // callback can be any func type
