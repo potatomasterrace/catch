@@ -9,13 +9,15 @@ import (
 )
 
 // adding some work so benchmark is accurate
-const benchmarkSampleSize = 100 * 1000 * 1000
+const benchmarkSampleSize = 1000 * 1000
 
-func repeatForBenchmark(f func()) {
-	for i := 0; i < benchmarkSampleSize; i++ {
+func repeatForBenchmark(f func(), factor int) {
+	repetitions := benchmarkSampleSize * factor
+	for i := 0; i < repetitions; i++ {
 		f()
 	}
 }
+
 func BenchmarkWithPanicking(b *testing.B) {
 	b.Run("pure go", func(b *testing.B) {
 		repeatForBenchmark(func() {
@@ -23,14 +25,13 @@ func BenchmarkWithPanicking(b *testing.B) {
 				recover()
 			}()
 			panicProneFunc()
-		})
+		}, 10)
 	})
 	b.Run("catch", func(b *testing.B) {
 		repeatForBenchmark(func() {
 			Panic(panicProneFunc)
-		})
+		}, 10)
 	})
-
 }
 func BenchmarkWithoutPanicking(b *testing.B) {
 	b.Run("pure go", func(b *testing.B) {
@@ -39,12 +40,12 @@ func BenchmarkWithoutPanicking(b *testing.B) {
 				recover()
 			}()
 			panicLessFunc()
-		})
+		}, 1)
 	})
 	b.Run("catch", func(b *testing.B) {
 		repeatForBenchmark(func() {
 			Panic(panicLessFunc)
-		})
+		}, 1)
 	})
 }
 

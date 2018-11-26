@@ -1,7 +1,7 @@
 # Catch 
 Catch is a simple way for inlining Golang recover mechanism.
 The implementation is thread safe.
-<h2 style="color:red"> Usage in production strongly advised against</h2>
+<h2 style="color:red"> Do not use it before reading the perfomance cost section</h2>
 
 # Install :
     go get github.com/potatomasterrace/catch
@@ -22,7 +22,7 @@ This functions illustrate the cases :
         panic(42)
     }
 
-    func Switch(s1 string,s2 string) (string,string){
+    func functionThatSwitches(s1 string,s2 string) (string,string){
         // switching values (see Sanitize function)
         return s2,s1
     }
@@ -66,15 +66,21 @@ returns the same values as the previous example
 ```
 ### NB :
 sanitizedFunction is typed func(...interface{}) ([]interface{},error).
-Compiler checks for arguments types and number do not work.
+**no compiler checks for arguments types and number of arguments.**
 
-|    callback      |            retValues            |
-|:----------------:|:-------------------------------:|
-|   panicWithObj   |                42               |
-|   panicWithNil   |               nil               |
-|      noPanic     |               nil               |
+|    callback            |            retValues            |            err value            |
+|:----------------------:|:-------------------------------:|:-------------------------------:|
+|   panicWithNil         |               nil               | "panic called with a nil error" |
+|   functionThatPanics   |               nil               |              42                 |
+|   functionThatSwitches |        ["world","hello"]        |             nil                 |
 
 # Performance cost 
-here is the output from go test -bench=. comparing pure go panic/recover to catch.
+here is the output from go test -bench=. comparing panic/recover to catch.
 
-## Numbers 
+    BenchmarkWithPanicking/pure_go-4                       1        1090155629 ns/op
+    BenchmarkWithPanicking/catch-4                         1        5946460116 ns/op
+    BenchmarkWithoutPanicking/pure_go-4             2000000000               0.02 ns/op
+    BenchmarkWithoutPanicking/catch-4                      1        3063595345 ns/op
+## Bottom line
+* catch is about 6 times slower than pure go when no panic happens.
+* catch is a **LOT**  slower (litteraly 100 billion times) than pure go if panic happens.

@@ -68,16 +68,16 @@ func valuesToInterfaces(values []reflect.Value) []interface{} {
 }
 
 // Sanitize converts a panic prone function to a function that returns an error.
-func SanitizeFunc(panicProneFunc interface{}) func(args ...interface{}) (returnedValues []interface{}, _ error) {
+func SanitizeFunc(panicProneFunc interface{}) func(args ...interface{}) (returnedValues []interface{}, err interface{}) {
 	callbackValue := reflect.ValueOf(panicProneFunc)
-	return func(args ...interface{}) ([]interface{}, error) {
+	return func(args ...interface{}) ([]interface{}, interface{}) {
 		in := make([]reflect.Value, 0)
 		for _, arg := range args {
 			argValue := reflect.ValueOf(arg)
 			in = append(in, argValue)
 		}
 		var retValues []interface{}
-		err := Error(func() {
+		err := Interface(func() {
 			returnedValues := callbackValue.Call(in)
 			retValues = valuesToInterfaces(returnedValues)
 		})
