@@ -66,6 +66,7 @@ returns the same values as the previous example
 ```
 ### NB :
 sanitizedFunction is typed func(...interface{}) ([]interface{},error).
+
 **no compiler checks for arguments types and number of arguments.**
 
 |    callback            |            retValues            |            err value            |
@@ -83,4 +84,4 @@ here is the output from go test -bench=. comparing panic/recover to catch.
     BenchmarkWithoutPanicking/catch-4                      1        3063595345 ns/op
 ## Bottom line
 * catch is about 6 times slower than pure go when no panic happens.
-* catch is a **LOT**  slower (litteraly 100 billion times) than pure go if panic happens.
+* catch is a **LOT**  slower (litteraly 100 billion times) than pure go if a panic happens.
