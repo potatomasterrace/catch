@@ -34,7 +34,7 @@ This functions illustrate the cases :
     err := catch.Interface(callback)
     // err is type interface{}
 ```
-|    callback      |            err    value         | err castable to |
+|    callback      |            err    value         | err typed       |
 |:----------------:|:-------------------------------:|:---------------:|
 |   panicWithObj   |                42               |       int       |
 |   panicWithNil   | "panic called with a nil error" |      error      |
@@ -45,7 +45,7 @@ returns the same values as the previous example
 ``` Go
     // callback has to be type func()
     err := catch.Error(callback)
-    // r is type error
+    // err is type error
 ```
 ## Inlining with details
 ``` Go
