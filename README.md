@@ -65,9 +65,9 @@ returns the same values as the previous example
     retValues, err :=  sanitizedFunction("hello","world")
 ```
 ### NB :
+**no compiler checks for arguments types and number of arguments.**
 sanitizedFunction is typed func(...interface{}) ([]interface{},error).
 
-**no compiler checks for arguments types and number of arguments.**
 
 |    callback            |            retValues            |            err value            |
 |:----------------------:|:-------------------------------:|:-------------------------------:|
