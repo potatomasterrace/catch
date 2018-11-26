@@ -9,43 +9,70 @@ import (
 )
 
 // adding some work so benchmark is accurate
-const benchmarkSampleSize = 1000 * 1000
+const benchmarkSampleSize = 400 * 1000
 
-func repeatForBenchmark(f func(), factor int) {
-	repetitions := benchmarkSampleSize * factor
-	for i := 0; i < repetitions; i++ {
-		f()
+func repeatForBenchmark(f func(), multithreadedContext bool) {
+	for i := 0; i < benchmarkSampleSize; i++ {
+		if multithreadedContext {
+			go f()
+		} else {
+			f()
+		}
 	}
 }
 
-func BenchmarkWithPanicking(b *testing.B) {
-	b.Run("pure go", func(b *testing.B) {
-		repeatForBenchmark(func() {
+func getPureGoBenchFunc(panic bool) func() {
+	wrap := func(f func()) func() {
+		return func() {
 			defer func() {
 				recover()
 			}()
-			panicProneFunc()
-		}, 10)
+			f()
+		}
+	}
+	if panic {
+		return wrap(panicProneFunc)
+	}
+	return wrap(panicLessFunc)
+
+}
+func getCatchBenchFunc(panic bool) func() {
+	if panic {
+		return func() {
+			Panic(panicProneFunc)
+		}
+	}
+	return func() {
+		Panic(panicLessFunc)
+	}
+}
+
+func runBenchmarks(panic bool, multithreadedContext bool, b *testing.B) {
+	b.Run("pure go", func(b *testing.B) {
+		repeatForBenchmark(getPureGoBenchFunc(panic), multithreadedContext)
 	})
 	b.Run("catch", func(b *testing.B) {
-		repeatForBenchmark(func() {
-			Panic(panicProneFunc)
-		}, 10)
+		repeatForBenchmark(getCatchBenchFunc(panic), multithreadedContext)
 	})
 }
-func BenchmarkWithoutPanicking(b *testing.B) {
-	b.Run("pure go", func(b *testing.B) {
-		repeatForBenchmark(func() {
-			defer func() {
-				recover()
-			}()
-			panicLessFunc()
-		}, 1)
+
+func BenchmarkWithPanic(b *testing.B) {
+	panics := true
+	b.Run("single goroutine", func(b *testing.B) {
+		runBenchmarks(panics, false, b)
 	})
-	b.Run("catch", func(b *testing.B) {
-		repeatForBenchmark(func() {
-			Panic(panicLessFunc)
-		}, 1)
+	b.Run("multiple goroutines", func(b *testing.B) {
+		runBenchmarks(panics, true, b)
+	})
+}
+
+func BenchmarkWithoutPanic(b *testing.B) {
+	panics := false
+	b.Run("single goroutine", func(b *testing.B) {
+		runBenchmarks(panics, false, b)
+	})
+	b.Run("multiple goroutines", func(b *testing.B) {
+		runBenchmarks(panics, true, b)
 	})
 }
 

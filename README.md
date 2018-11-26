@@ -78,10 +78,15 @@ sanitizedFunction is typed func(...interface{}) ([]interface{},error).
 # Performance cost 
 here is the output from go test -bench=. comparing panic/recover to catch.
 
-    BenchmarkWithPanicking/pure_go-4                       1        1090155629 ns/op
-    BenchmarkWithPanicking/catch-4                         1        5946460116 ns/op
-    BenchmarkWithoutPanicking/pure_go-4             2000000000               0.02 ns/op
-    BenchmarkWithoutPanicking/catch-4                      1        3063595345 ns/op
+    BenchmarkWithPanic/single_goroutine/pure_go-4                   2000000000               0.02 ns/op
+    BenchmarkWithPanic/single_goroutine/catch-4                     2000000000               0.12 ns/op
+    BenchmarkWithPanic/multiple_goroutines/pure_go-4                2000000000               0.04 ns/op
+    BenchmarkWithPanic/multiple_goroutines/catch-4                  1000000000               0.20 ns/op
+    BenchmarkWithoutPanic/single_goroutine/pure_go-4                2000000000               0.01 ns/op
+    BenchmarkWithoutPanic/single_goroutine/catch-4                  2000000000               0.11 ns/op
+    BenchmarkWithoutPanic/multiple_goroutines/pure_go-4             2000000000               0.03 ns/op
+    BenchmarkWithoutPanic/multiple_goroutines/catch-4               2000000000               0.08 ns/op
+    
 ## Bottom line
-* catch is about 6 times slower than pure go when no panic happens.
-* catch is a **LOT**  slower (litteraly 100 billion times) than pure go if a panic happens.
+* catch is about 5 to 6 times slower than pure go when no panic happens.
+* catch is about 3 to 11 times slower than pure go if a panic happens.

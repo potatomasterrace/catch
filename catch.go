@@ -13,17 +13,15 @@ type funcCall struct {
 
 // encapsulate the panic prone function and notify the channel.
 func encapsulate(panicProne func(), errChan chan funcCall) {
+	panicked := true
 	defer func() {
 		errChan <- funcCall{
 			err:      recover(),
-			panicked: true,
+			panicked: panicked,
 		}
 	}()
 	panicProne()
-	errChan <- funcCall{
-		err:      nil,
-		panicked: false,
-	}
+	panicked = false
 }
 
 // Panic catches a panic prone func.
@@ -67,7 +65,7 @@ func valuesToInterfaces(values []reflect.Value) []interface{} {
 	return interfaces
 }
 
-// Sanitize converts a panic prone function to a function that returns an error.
+// SanitizeFunc converts a panic prone function to a function that returns an error.
 func SanitizeFunc(panicProneFunc interface{}) func(args ...interface{}) (returnedValues []interface{}, err interface{}) {
 	callbackValue := reflect.ValueOf(panicProneFunc)
 	return func(args ...interface{}) ([]interface{}, interface{}) {
