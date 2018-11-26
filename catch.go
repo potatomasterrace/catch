@@ -2,45 +2,85 @@ package catch
 
 import (
 	"fmt"
+	"reflect"
 )
 
-// funcCall represents a function
-// call.
+// trivial implementation of a functionCall
 type funcCall struct {
 	err      interface{}
-	finished bool
+	panicked bool
 }
 
-// Panic catches a panic prone func
-// and returns
-func Panic(panicProne func()) (bool, interface{}) {
-	errChan := make(chan funcCall)
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				errChan <- funcCall{
-					err:      err,
-					finished: false,
-				}
-			}
-		}()
-		panicProne()
+// encapsulate the panic prone function and notify the channel.
+func encapsulate(panicProne func(), errChan chan funcCall) {
+	defer func() {
 		errChan <- funcCall{
-			err:      nil,
-			finished: true,
+			err:      recover(),
+			panicked: true,
 		}
 	}()
-	ret := <-errChan
-	return ret.finished, ret.err
+	panicProne()
+	errChan <- funcCall{
+		err:      nil,
+		panicked: false,
+	}
 }
 
-func CatchError(panicProne func()) error {
-	finished, err := Panic(panicProne)
+// Panic catches a panic prone func.
+func Panic(panicProne func()) (panicked bool, recoverReturn interface{}) {
+	errChan := make(chan funcCall)
+	go encapsulate(panicProne, errChan)
+	ret := <-errChan
+	return ret.panicked, ret.err
+}
+
+// Interface returns the recovered value as an interface.
+func Interface(panicProne func()) interface{} {
+	panicked, err := Panic(panicProne)
 	if err != nil {
-		return fmt.Errorf("%s", err)
+		return err
 	}
-	if !finished {
-		return fmt.Errorf("function called panic with a nil error")
+	if panicked {
+		return fmt.Errorf("panic called with a nil error")
 	}
 	return nil
+}
+
+// Error returns the recovered value as error.
+func Error(panicProne func()) error {
+	recoveredValue := Interface(panicProne)
+	if recoveredValue != nil {
+		return fmt.Errorf("%s", recoveredValue)
+	}
+	return nil
+}
+
+// valuesToInterfaces convert reflect values to interfaces.
+func valuesToInterfaces(values []reflect.Value) []interface{} {
+	if values == nil {
+		return nil
+	}
+	interfaces := make([]interface{}, len(values))
+	for i, value := range values {
+		interfaces[i] = value.Interface()
+	}
+	return interfaces
+}
+
+// Sanitize converts a panic prone function to a function that returns an error.
+func SanitizeFunc(panicProneFunc interface{}) func(args ...interface{}) (returnedValues []interface{}, _ error) {
+	callbackValue := reflect.ValueOf(panicProneFunc)
+	return func(args ...interface{}) ([]interface{}, error) {
+		in := make([]reflect.Value, 0)
+		for _, arg := range args {
+			argValue := reflect.ValueOf(arg)
+			in = append(in, argValue)
+		}
+		var retValues []interface{}
+		err := Error(func() {
+			returnedValues := callbackValue.Call(in)
+			retValues = valuesToInterfaces(returnedValues)
+		})
+		return retValues, err
+	}
 }
