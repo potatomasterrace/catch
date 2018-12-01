@@ -15,8 +15,9 @@ type funcCall struct {
 func encapsulate(panicProne func(), errChan chan funcCall) {
 	panicked := true
 	defer func() {
+		err := recover()
 		errChan <- funcCall{
-			err:      recover(),
+			err:      err,
 			panicked: panicked,
 		}
 	}()
