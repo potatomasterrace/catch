@@ -3,8 +3,6 @@ package catch
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/potatomasterrace/catch"
 )
 
 // trivial implementation of a functionCall
@@ -25,16 +23,6 @@ func encapsulate(panicProne func(), errChan chan funcCall) {
 	}()
 	panicProne()
 	panicked = false
-}
-
-// CanCall checks if a function with no args can be called.
-// TODO add to readme.
-func CanCall(function interface{}) bool {
-	err := catch.Error(func() {
-		value := reflect.ValueOf(function)
-		value.Call([]reflect.Value{})
-	})
-	return err != nil
 }
 
 // Panic catches a panic prone func.
@@ -64,6 +52,16 @@ func Error(panicProne func()) error {
 		return fmt.Errorf("%s", recoveredValue)
 	}
 	return nil
+}
+
+// CanCall checks if a function with no args can be called.
+// TODO add to readme.
+func CanCall(function interface{}) bool {
+	err := Error(func() {
+		value := reflect.ValueOf(function)
+		value.Call([]reflect.Value{})
+	})
+	return err == nil
 }
 
 // valuesToInterfaces convert reflect values to interfaces.

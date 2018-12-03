@@ -155,6 +155,21 @@ func TestError(t *testing.T) {
 	})
 }
 
+func TestCancall(t *testing.T) {
+	panicless := func() (int, string) {
+		return 0, ""
+	}
+	panicky := func() (string, int) {
+		panic(42)
+	}
+	t.Run("positive", func(t *testing.T) {
+		assert.True(t, CanCall(panicless))
+	})
+	t.Run("negative", func(t *testing.T) {
+		assert.False(t, CanCall(panicky))
+	})
+}
+
 func TestSanitizeWithProcedure(t *testing.T) {
 	t.Run("with panic", func(t *testing.T) {
 		sanitizedFunction := SanitizeFunc(panicFunc(expectedError))
